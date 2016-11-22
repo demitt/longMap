@@ -15,7 +15,7 @@ public class LongMap<V> implements TestMap<V> {
     private int capacity;
     private final float loadFactor;
     private int minSizeForResize; //threshold
-    private Entry<V>[] table;
+    private Entry<V>[] table; //TODO: comment: non-private to simplify nested class access
 
 
     public LongMap() {
@@ -213,18 +213,29 @@ public class LongMap<V> implements TestMap<V> {
 
     @Override
     //@SuppressWarnings("unchecked")
-    public V[] values() { //TODO: пересмотреть концепцию, т.к. возвращает массив Object[]
+    public V[] values() {
+        /*//На правах шизы; однако если элементов 0, то не сработает
+        Class<?> clazz = null;
+        for (int i = 0; i < capacity; i++) {
+            if (table[i] != null) {
+                clazz = table[i].value.getClass();
+                break;
+            }
+        }
+        V[] values = (V[]) Array.newInstance(clazz, size);*/
+
         Entry<V> entry;
         int index = 0;
-        Object[] values = new Object[size];
+        V[] values = (V[])new Object[size];
         for (int i = 0; i < capacity; i++) {
             entry = table[i];
             while (entry != null) {
                 values[index] = entry.value;
                 entry = entry.next;
+                index++;
             }
         }
-        return (V[]) values;
+        return values; //TODO: BUG: returns Object[]. Pain...
     }
 
     @Override
