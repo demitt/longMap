@@ -139,17 +139,18 @@ public class LongMap<V> implements TestMap<V> {
     }
 
     @Override
-    //TODO: BUG: удаляет элемент только тогда, когда он первый, плюс за ним еще есть минимум 1; причем в списке ключей его нет, а в toString - есть
     public V remove(long key) {
-        System.out.println("remove()");
         int index = indexFor(key, capacity);
         Entry<V> entry = table[index];
-        Entry<V> prev = table[index];
+        Entry<V> prev = null;
         while (entry != null) {
-            System.out.println( "entry.key=" + entry.key + ", prev.key=" + prev.key);
             if (entry.key == key) {
                 V removedValue = entry.value;
-                prev.next = entry.next;
+                if (prev != null) {
+                    prev.next = entry.next;
+                } else {
+                    table[index] = entry.next;
+                }
                 size--;
                 return removedValue;
             }
