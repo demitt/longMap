@@ -1,7 +1,6 @@
 package ua.demitt.homework.longmap.impl;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import ua.demitt.homework.longmap.TestMap;
 
@@ -14,7 +13,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class LongMapTest {
     private TestMap<String> map;
@@ -27,7 +25,7 @@ public class LongMapTest {
 
     @Before
     public void setUp() throws Exception {
-        this.map = new LongMap<>();
+        this.map = new LongMap<>(String.class);
     }
 
     @Test
@@ -83,7 +81,7 @@ public class LongMapTest {
         String actualGetResult = this.map.get(this.key1);
 
         //Then
-        assertNotNull("get() не нашел существующий ключ", actualGetResult);
+        assertNotNull("get() не нашел существующий элемент", actualGetResult);
         assertEquals("get() вернул ошибочное (возможно, предыдущее) значение", this.value2, actualGetResult);
     }
 
@@ -107,7 +105,7 @@ public class LongMapTest {
         String actualGetResult = this.map.get(this.key2);
 
         //Then
-        assertNull("get() не вернул null для несуществующего ключа", actualGetResult);
+        assertNull("Не возвращен null для несуществующего ключа", actualGetResult);
     }
 
     @Test
@@ -162,7 +160,7 @@ public class LongMapTest {
         boolean actualContainsKeyResult = this.map.containsKey(this.key1);
 
         //Then
-        assertTrue("containsKey() не нашел существующий ключ", actualContainsKeyResult);
+        assertTrue("Не найден существующий ключ", actualContainsKeyResult);
     }
 
     @Test
@@ -174,7 +172,7 @@ public class LongMapTest {
         boolean actualContainsKeyResult = this.map.containsKey(100L);
 
         //Then
-        assertFalse("containsKey() нашел несуществующий ключ", actualContainsKeyResult);
+        assertFalse("Найден несуществующий ключ", actualContainsKeyResult);
     }
 
     @Test
@@ -186,7 +184,7 @@ public class LongMapTest {
         boolean actualContainsValueResult = this.map.containsValue(this.value1);
 
         //Then
-        assertTrue("containsValue() не нашел существующее значение", actualContainsValueResult);
+        assertTrue("Не найдено существующее значение", actualContainsValueResult);
     }
 
     @Test
@@ -198,7 +196,7 @@ public class LongMapTest {
         boolean actualContainsValueResult = this.map.containsValue("some value");
 
         //Then
-        assertFalse("containsValue() нашел несуществующее значение", actualContainsValueResult);
+        assertFalse("Найдено несуществующее значение", actualContainsValueResult);
     }
 
     @Test
@@ -229,32 +227,35 @@ public class LongMapTest {
 
         //Then
         assertEquals("Получена ошибочная длина массива ключей", this.map.size(), actualKeysResult.length);
-        assertEquals("Список ключей ошибочный", existingKeys, actualKeys);
+        assertEquals("Получен ошибочный список ключей", existingKeys, actualKeys);
     }
 
     @Test
-    @Ignore
     public void testValuesOnEmptyMap() throws Exception {
         //Given
 
         //When
-        //TODO
+        String[] actualValuesResult = this.map.values();
 
         //Then
-        fail("NOT IMPLEMENTED YET");
+        assertEquals("Получена ненулевая длина массива значений", 0, actualValuesResult.length);
     }
 
     @Test
-    @Ignore
     public void testValues() throws Exception {
         //Given
-        //TODO
+        addSeveralElementsToMap();
+        List<String> existingValues = Arrays.asList(this.value1, this.value2);
+        existingValues.sort(null);
 
         //When
-        //TODO
+        String[] actualValuesResult = this.map.values();
+        List<String> actualValues = Arrays.asList(actualValuesResult);
+        actualValues.sort(null);
 
         //Then
-        fail("NOT IMPLEMENTED YET");
+        assertEquals("Получена ошибочная длина массива значений", this.map.size(), actualValuesResult.length);
+        assertEquals("Получен ошибочный список значений", existingValues, actualValues);
     }
 
     @Test
@@ -266,7 +267,7 @@ public class LongMapTest {
         long actualSize = this.map.size();
 
         //Then
-        assertEquals("size() вернул ошибочный размер", 2, actualSize);
+        assertEquals("Получен ошибочный размер", 2, actualSize);
     }
 
     @Test
@@ -278,6 +279,6 @@ public class LongMapTest {
         this.map.clear();
 
         //Then
-        assertEquals("Мапа не пуста", 0, this.map.size());
+        assertEquals("Мапа не опустошена", 0, this.map.size());
     }
 }
