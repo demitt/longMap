@@ -3,17 +3,12 @@ package ua.demitt.homework.longmap.impl;
 import ua.demitt.homework.longmap.TestMap;
 
 import java.lang.reflect.Array;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 
-public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
+public class LongMap<V> implements TestMap<V> {
     private static final int DEFAULT_CAPACITY = 16;
     private static final float DEFAULT_LOAD_FACTOR = 0.75F;
     private static final int MAX_CAPACITY = 1073741824;
-    //Для справки:
-    //  Integer.MAX_VALUE >> 1 == 1073741823
-    //  в хэшмапе: 1073741824 (половина от макс. значения)
 
     private int size;
     private int capacity;
@@ -31,13 +26,13 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
         this(capacity, DEFAULT_LOAD_FACTOR, clazz);
     }
 
-    //@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public LongMap(int initCapacity, float loadFactor, Class<?> clazz) {
         if (initCapacity < 0) {
             throw new IllegalArgumentException("Illegal initial capacity: " + initCapacity);
         }
         initCapacity = initCapacityRounding(initCapacity);
-        if (loadFactor > 0.0F /*&& (!Float.isNaN(loadFactor))*/) { //TODO: понять, зачем вторая проверка
+        if (loadFactor > 0.0F) {
             this.loadFactor = loadFactor;
             capacity = initCapacity;
             size = 0;
@@ -47,10 +42,6 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
         } else {
             throw new IllegalArgumentException("Illegal load factor: " + loadFactor);
         }
-        System.out.println(
-            "cap=" + initCapacity + ", loadFactor=" + loadFactor + ", minSizeForResize=" + minSizeForResize +
-            ", table.length=" + table.length
-        );
     }
 
 
@@ -65,21 +56,16 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
     }
 
     private int minSizeForResizeFor(long capacity) {
-        System.out.println("minSizeForResizeFor()=" + Math.ceil(capacity * loadFactor));
         return (int) Math.ceil(capacity * loadFactor);
     }
 
     @Override
     public V put(long key, V value) {
-        System.out.println("put(); key=" + key + ", value=" + value);
         int index = indexFor(key, capacity);
         Node<V> node = table[index];
         V oldValue;
-        System.out.println("node == null ? " + (node == null));
         while (node != null) {
-            System.out.println("node != null, node.key=" + node.key);
             if (key == node.key) {
-                System.out.println("key == node.key, oldValue=" + node.value);
                 oldValue = node.value;
                 node.value = value;
                 return oldValue;
@@ -95,25 +81,21 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
     }
 
     private int indexFor(long key, int tableLength) {
-        System.out.println("indexFor()=" + key%tableLength);
         return (int) key & (tableLength - 1);
     }
 
     private void addNode(int index, long key, V value, Node<V>[] table) {
-        System.out.println("addNode()");
         Node<V> firstNode = table[index];
         table[index] = new Node<>(index, key, value, firstNode);
     }
 
-    //@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     private void resize() {
         capacityIncreasing();
-        System.out.println("resize(), новое capacity=" + capacity);
         minSizeForResize = minSizeForResizeFor(capacity);
         Node<V>[] newTable = new Node[capacity];
         transfer(newTable);
         table = newTable;
-        System.out.println("resize() завершен");
     }
 
     private void capacityIncreasing() {
@@ -128,7 +110,6 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
                 key = node.key;
                 index = indexFor(key, capacity);
                 addNode(index, key, node.value, newTable);
-                System.out.println("Добавляем в " + index + " " + key + "=" + node.value);
                 node = node.next;
             }
         }
@@ -206,7 +187,7 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
         for (Node<V> node : table) {
             while (node != null) {
                 curValue = node.value;
-                if (curValue != null && curValue.equals(value) || isNull && curValue == null) { //TODO: оптимизировать?
+                if (curValue != null && curValue.equals(value) || isNull && curValue == null) {
                     return true;
                 }
                 node = node.next;
@@ -232,7 +213,7 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
     }
 
     @Override
-    //@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public V[] values() {
         V[] values = (V[]) Array.newInstance(type, size);
         int index = 0;
@@ -277,11 +258,6 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
         return sb.toString();
     }
 
-    /*@Override
-    public Iterator<Node<V>> iterator() {
-        return new LongMapNodeIterator(); //LongMapNodeIterator<> ?  +м.б.this как аргумент
-    }*/
-
 
     private static class Node<S> {
         final int index;
@@ -296,55 +272,4 @@ public class LongMap<V> implements TestMap<V> /*, Iterable<LongMap.Node<V>>*/ {
             next = e;
         }
     }
-
-
-    class LongMapValueIterator extends LongMapIterator implements Iterator<V> {
-        @Override
-        public V next() {
-            return nextNode().value;
-        }
-    }
-
-    /*class LongMapNodeIterator extends LongMapIterator implements Iterator<Node<V>> {
-        @Override
-        public Node<V> next() {
-            return nextNode();
-        }
-    }*/
-
-    abstract class LongMapIterator {
-        private Node<V> current;
-        private Node<V> next;
-        private int index;
-        private Node<V>[] t;
-
-        public LongMapIterator() {
-            t = table;
-            current = null;
-            index = 0;
-            next = t[index];
-            if (/*t != null &&*/ size > 0) {
-                while (index < t.length && next == null) {
-                    next = t[++index];
-                }
-            }
-        }
-
-        public final boolean hasNext() {
-            return next != null;
-        }
-
-        public final Node<V> nextNode() {
-            if (next == null) {
-                throw new NoSuchElementException();
-            }
-            current = next;
-            next = current.next;
-            while (next == null && index < t.length) {
-                next = t[++index];
-            }
-            return current;
-        }
-    }
 }
-
